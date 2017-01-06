@@ -31,16 +31,6 @@ check_valid' (x:y:s) c
     | x == y = 0
     | otherwise = check_valid' (y:s) $ c + 1
 
-calc :: String -> String -> Int
-calc s u
-    | (length u) == 2 = check_valid s
-    | (length u) < 2 = error "Not expected"
-    | otherwise =
-        let
-            rots = poss_rot u
-            pos_len = map (\(el, l) -> calc (remove_from_string s el) l) rots
-        in foldr max 0 pos_len
-
 poss_rot :: (Eq a) => [a] -> [(a, [a])]
 poss_rot s = map (\(x,y) -> ((head y),x ++ (tail y))) (map ((flip splitAt) s) [0 .. (length s) - 1])
 
@@ -66,9 +56,37 @@ ordered_subcollections :: (Ord a) => Int -> [a] -> [[a]]
 ordered_subcollections l s =
     filter ascending_collection (map (take l) (permutations s))
 
+remove_elem_from_col :: (Eq a) => [a] -> a -> [a]
+remove_elem_from_col s x = filter (/= x) s
+
+remove_elems_from_col :: (Eq a) => [a] -> [a] -> [a]
+remove_elems_from_col col elems =
+    foldr (\el res -> remove_elem_from_col res el) col elems
+
+
+correct_sub :: (Eq a) => [a] -> Bool
+correct_sub [] = True
+correct_sub [ el ] = True
+correct_sub (x:y:s)
+    | x == y = False
+    | otherwise = correct_sub (y:s)
+
+calc' :: String -> String -> Int
+calc' s u =
+    let
+        nr_of_chars_to_be_removed = (length u) - 2
+        removal_choices = ordered_subcollections nr_of_chars_to_be_removed s
+        gen_subs = map (\rchoice -> remove_elems_from_col s rchoice) removal_choices
+        correct_subs = filter (\el -> correct_sub el ) gen_subs
+        sub_lengths = map length correct_subs
+    in foldr max 0 sub_lengths
+
+calc :: String -> Int
+calc s = calc' s (unique_vals s)
+
 main :: IO()
 main = do
     length_line <- getLine
     let length = read length_line :: Int
     data_line <- getLine
-    putStrLn (show (calc data_line (unique_vals data_line)))
+    putStrLn (show (calc data_line))
