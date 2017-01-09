@@ -1,10 +1,12 @@
+FLAGS=-g -Wall -Wextra -pedantic
+
 all: coinchange
 
 coinchange: coinchange.cpp.o
-	$(CXX) -o $@ $^
+	$(CXX) $(FLAGS) -o $@ $^
 
 %.cpp.o: %.cpp
-	$(CXX) -c -o $@ $<
+	$(CXX) -c $(FLAGS) -o $@ $<
 
 .PHONY: clean
 
